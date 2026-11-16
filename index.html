@@ -1,0 +1,517 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>НАИ: Волновой модуль стабилизации v3.9</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMwRTBFMEUiIHN0cm9rZT0iI0EzNzA0QyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTIwIDE2djMyTTQ0IDE2djMyTTIwIDMyaDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNBMzcwNEMiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+">
+    <meta name="theme-color" content="#0E0E0E">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { background: #0E0E0E; color: #D5D5D5; font-family: 'Courier New', Courier, monospace; padding: 20px; max-width: 900px; margin: 0 auto; user-select: none; }
+        h2, h3 { color: #A3704C; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; }
+        .control-panel { background-color: #141414; border: 2px solid #333; border-radius: 8px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.7); margin-bottom: 20px; }
+        .stats-box { background-color: #1A1A1A; border-left: 4px solid #A3704C; padding: 12px; margin-bottom: 15px; border-radius: 4px; }
+        .stat-line, .line { margin: 8px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .value, .val { color: #FFF; font-weight: bold; }
+        .btn-gen { background-color: #222; color: #7CA34C; border: 1px solid #7CA34C; padding: 12px; cursor: pointer; font-family: inherit; font-weight: bold; border-radius: 4px; width: 100%; transition: all 0.2s; text-align: center; margin-bottom: 5px; }
+        .btn-gen:hover { background-color: #222; filter: brightness(1.3); }
+        #vX { white-space: nowrap; }
+        @media (max-width: 480px) { 
+            .btn-gen { padding: 8px 4px; font-size: 11px; line-height: 1.2; word-spacing: -1px; } 
+            #vX { font-size: 12px !important; }
+        }
+        .lift-btn.active { background-color: #0ea5e9 !important; color: #FFF !important; border-color: #38bdf8 !important; font-weight: bold; box-shadow: 0 0 12px rgba(14, 165, 233, 0.5); }
+        .volume-box { background-color: #161616; border: 1px solid #2A2A2A; border-radius: 6px; padding: 12px 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .volume-header { display: flex; justify-content: space-between; font-size: 12px; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .volume-slider { -webkit-appearance: none; width: 100%; height: 6px; background: #222; border-radius: 3px; outline: none; cursor: pointer; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; cursor: pointer; box-shadow: 0 0 8px rgba(56, 189, 248, 0.6); }
+    </style>
+</head>
+<body>
+
+            <h2>НАИ: Волновой модуль стабилизации ментального состояния v3.9 (Упрощенная модификация)</h2>
+    
+    <div style="font-size: 12px; color: #888; margin-bottom: 15px; border-left: 2px solid #703020; padding-left: 10px; font-family: inherit;">
+        Адаптивная упрощенная версия: параметры зажаты в безопасные границы для исключения перегрузки ЦНС. Полный мануал — в описании.
+    </div>
+    
+    <!-- БЛОК 1: ЧЕТЫРЕ ЧЕСТНЫХ ПРЕСЕТА -->
+    <div class="control-panel">
+        <h3>1. Выбор технологической операции</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <button class="btn-gen" style="border-color:#8C4CA3; color:#8C4CA3;" onclick="setPreset(14, 0.6, 0.5)">1.АНТИСТРЕСС<br>(14 Гц)</button>
+            <button class="btn-gen" style="border-color:#4C8CA3; color:#4C8CA3;" onclick="setPreset(12, -0.2, -0.1)">2.СНЯТИЕ ТРЕВОГИ<br>(12 Гц)</button>
+            <button class="btn-gen" style="border-color:#A3704C; color:#A3704C;" onclick="setPreset(10, 0.0, 0.0)">3.РЕЛАКСАЦИЯ<br>(10 Гц)</button>
+            <button class="btn-gen" style="border-color:#7CA34C; color:#7CA34C;" onclick="setPreset(7, 0.2, 0.1)">4.ГЛУБОКИЙ ОТДЫХ<br>(7 Гц)</button>
+        </div>
+        
+                <div style="background:#1A1A1A; padding:12px; border-radius:4px; font-size:12px; margin-bottom:5px; display:flex; flex-wrap: wrap; gap: 8px; justify-content:space-between; align-items:center; border-left: 4px solid #A3704C;">
+
+            <span style="color:#A3704C; font-weight:bold;">МОДИФИКАЦИЯ (ШАГ СПУСКА ЛИФТА):</span>
+            <select id="stepSelect" style="background:#222; color:#FFF; border:1px solid #555; padding:5px; font-family:inherit; border-radius:4px;" onchange="updateTargetFromSelection()">
+                                                <option value="2.0">Мягкий спуск (-2.0 Гц)</option>
+                <option value="3.0" selected>Золотая середина (-3.0 Гц)</option>
+                <option value="4.0">Глубокий спуск (-4.0 Гц)</option>
+            </select>
+        </div>
+    </div>
+
+            <h3>2. Монитор текущих параметров</h3>
+        <div class="stats-box" style="border-left-color: #A3704C;">
+            <div class="stat-line" style="color: #A3704C; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px;">
+                <span>Статус Системы:</span> <span id="vPattern" class="value">Ожидание...</span>
+            </div>
+                    <div class="stat-line">Текущая операция: <span id="vX" class="value">Ожидание выбора...</span></div>
+            <div class="stat-line">Текущая фаза: <span id="vPhase" class="value">Фаза 1 из 5</span></div>
+        </div>
+        <div class="stats-box" style="border-left-color: #4C8CA3;">
+            <div class="stat-line">Несущая Частота (Fc): <span id="vFc" class="value">500.00 Гц</span></div>
+            <div class="stat-line">Частота Биений (Fb): <span id="vFb" class="value">10.00 Гц</span></div>
+        </div>
+    </div>
+
+    <!-- БЛОК 3: ЖИВОЙ ТРАКТ РЕМОНТА -->
+    <div class="control-panel">
+        <h3>3. Автоматический лифт понижения частоты</h3>
+        <div class="stats-box" style="border-left-color: #7CA34C;">
+            <div class="line" style="color:#A3704C; font-weight:bold;">
+                <span>ЦЕЛЕВАЯ ЧАСТОТА ЛИФТА:</span>
+                <span class="value">Fc: <span id="targetDisplayFc">---</span> Гц | Fb: <span id="targetDisplayFb">---</span> Гц</span>
+            </div>
+                        <div class="line" style="color:#A3704C; font-weight:bold; border-top: 1px solid #222; padding-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between;">
+                <span style="flex-shrink: 0;">СТАТУС АВТОМАТА:</span> <span id="liftStatus" class="value" style="text-align: right;">ОЖИДАНИЕ ПУСКА</span>
+            </div>
+            <div class="line"><span>ЛЕВОЕ УХО (ГЕНЕРАТОР):</span> <span id="realGenL" class="value">---</span></div>
+            <div class="line"><span>ПРАВОЕ УХО (ГЕНЕРАТОР):</span> <span id="realGenR" class="value">---</span></div>
+            <div class="line"><span>ОБЩЕЕ ВРЕМЯ (ОБРАТНЫЙ ОТСЧЕТ):</span> <span id="liftTimer" class="value" style="color: #7CA34C;">30:00</span></div>
+            <div class="line" style="color:#4C8CA3;"><span>Циклическая инверсия каналов через:</span> <span id="swapTimer" class="value">---</span></div>
+        </div>
+        
+        <button id="genButton" class="btn-gen" onclick="toggleGenerator()">1. ЗАПУСТИТЬ ГЕНЕРАТОР</button>
+        <button id="liftButton" class="btn-gen" onclick="toggleLift()" style="background:#222; color:#4C8CA3; border-color:#4C8CA3; margin-top: 10px;">2. АКТИВИРОВАТЬ ЛИФТ </button>
+    </div>
+        <div class="volume-box">
+            <div class="volume-header">
+                <span>Уровень громкости</span>
+                <span id="volDisplay" style="color: #38bdf8;">80%</span>
+            </div>
+            <input type="range" id="volSlider" class="volume-slider" min="0" max="100" value="80" oninput="changeVolume(this.value)">
+        </div>
+<script>
+                       let masterGain = null;
+        let userVolumeRatio = 0.8;
+
+        function changeVolume(val) {
+            userVolumeRatio = parseFloat(val) / 100;
+            document.getElementById('volDisplay').innerText = val + '%';
+            try { localStorage.setItem('nai_wave_vol', val); } catch (e) {}
+
+            if (masterGain && typeof audioCtx !== 'undefined' && audioCtx) {
+                masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                masterGain.gain.linearRampToValueAtTime(userVolumeRatio, audioCtx.currentTime + 0.05);
+            }
+        }
+
+// =========================================================================
+// НАЧАЛО БЛОКА 2: СИСТЕМНЫЕ КОНСТАНТЫ И ЯДРО ПРЕСЕТОВ NAI v3.3
+// =========================================================================
+const K_WAVE = 50; const AMPLITUDE_THRESHOLD = 35;
+const SWAP_INTERVAL = 360;  // Шаг бесшовной инверсии каналов (6 минут)
+const TOTAL_SESSION_TIME = 1800; // Ровные 30 минут купола сессии в секундах
+
+let NAI_Core = {
+    smoothX: 0.0, smoothY: 0.0,
+    startFc: 500.0, startFb: 10.0,
+    targetFc: 400.0, targetFb: 8.0, 
+    currentFc: 500.0, currentFb: 10.0,
+    isGeneratorPlaying: false,
+    isLiftActive: false, 
+    liftTimeElapsed: 0,
+    totalTimeElapsed: 0,
+    liftDuration: 600, // Будет рассчитываться динамически
+    isSwapped: false,
+    selectedBaseFb: 10.0 // Фиксированный шаг пресета
+};
+
+let audioCtx = null; 
+let oscL = null; let oscR = null;
+let gainL = null; let gainR = null;
+let pannerL = null; let pannerR = null;
+let liftIntervalId = null;
+
+// ЧЕСТНЫЙ МАНУАЛЬНЫЙ СУДОВОЙ ЖУРНАЛ СОСТОЯНИЙ
+function setPreset(fb, nx, ny) {
+    if (NAI_Core.isGeneratorPlaying) return; 
+
+    NAI_Core.selectedBaseFb = fb;
+    NAI_Core.startFb = fb;
+    NAI_Core.startFc = fb * 50; 
+    
+    NAI_Core.smoothX = nx;
+    NAI_Core.smoothY = ny;
+
+    document.getElementById("vFc").innerText = NAI_Core.startFc.toFixed(2) + " Гц";
+    document.getElementById("vFb").innerText = NAI_Core.startFb.toFixed(2) + " Гц";
+    
+                let patternText = "СИНХРОНИЗАЦИЯ";
+    let modeText = "Ожидание...";
+        if (fb === 14) { modeText = "АНТИСТРЕСС (14 Гц)"; }
+    if (fb === 12) { modeText = "СНЯТИЕ ТРЕВОГИ (12 Гц)"; }
+    if (fb === 10) { modeText = "РЕЛАКСАЦИЯ (10 Гц)"; }
+    if (fb === 7)  { modeText = "ГЛУБОКИЙ ОТДЫХ (7 Гц)"; }
+    
+    document.getElementById("vPattern").innerText = patternText;
+    document.getElementById("vX").innerHTML = modeText;
+    
+    updateTargetFromSelection();
+}
+// РАСЧЕТ РУЧНОЙ ВАРИАТИВНОСТИ ЦЕЛИ
+function updateTargetFromSelection() {
+    if (NAI_Core.isGeneratorPlaying) return;
+
+    let step = parseFloat(document.getElementById("stepSelect").value);
+    
+    // Для Ментального дрифта (7 Гц) лифт заблокирован - это чистое стабильное ПЛАТО!
+    if (NAI_Core.selectedBaseFb === 7) {
+        NAI_Core.targetFb = 7.0;
+        document.getElementById("stepSelect").disabled = true;
+    } else {
+        document.getElementById("stepSelect").disabled = false;
+        NAI_Core.targetFb = NAI_Core.startFb - step;
+        if (NAI_Core.targetFb < 4.0) NAI_Core.targetFb = 4.0; // Жесткий пол безопасности народной версии!
+    }
+    
+    NAI_Core.targetFc = NAI_Core.targetFb * 50; // Синхронизируем несущую цели!
+
+    document.getElementById("targetDisplayFc").innerText = NAI_Core.targetFc.toFixed(2);
+    document.getElementById("targetDisplayFb").innerText = NAI_Core.targetFb.toFixed(2);
+
+    NAI_Core.currentFc = NAI_Core.startFc;
+    NAI_Core.currentFb = NAI_Core.startFb;
+    localStorage.setItem('nai_wave_fb', NAI_Core.selectedBaseFb);
+    localStorage.setItem('nai_wave_step', step);
+}
+// =========================================================================
+// КОНЕЦ БЛОКА 2
+// =========================================================================
+// ДОПОЛНИТЕЛЬНАЯ ФУНКЦИЯ: Колокол фиксации Snapshot'а (Вызывается автоматом на 5-й секунде)
+function lockOzoneSnapshot() {
+    if (NAI_Core.analysisBufferX.length === 0) {
+        // Страховка на случай пустых буферов
+        NAI_Core.analysisBufferX.push(0); NAI_Core.analysisBufferY.push(0);
+    }
+
+    // ВЫЧИСЛЕНИЕ СРЕДНЕКВАДРАТИЧНОЙ (RMS) КООРДИНАТ за 5 секунд
+    let sumSqX = 0; let sumSqY = 0;
+    for (let i = 0; i < NAI_Core.analysisBufferX.length; i++) {
+        sumSqX += Math.pow(NAI_Core.analysisBufferX[i], 2);
+        sumSqY += Math.pow(NAI_Core.analysisBufferY[i], 2);
+    }
+    
+    // Восстанавливаем знак направления через среднее арифметическое
+    let sumX = NAI_Core.analysisBufferX.reduce((a, b) => a + b, 0);
+    let sumY = NAI_Core.analysisBufferY.reduce((a, b) => a + b, 0);
+    
+    let rmsX = Math.sqrt(sumSqX / NAI_Core.analysisBufferX.length) * (sumX >= 0 ? 1 : -1);
+    let rmsY = Math.sqrt(sumSqY / NAI_Core.analysisBufferY.length) * (sumY >= 0 ? 1 : -1);
+
+    // Зажимаем RMS-координаты в рамки упругости
+    if(rmsX > 1.0) rmsX = 1.0; if(rmsX < -1.0) rmsX = -1.0;
+    if(rmsY > 1.0) rmsY = 1.0; if(rmsY < -1.0) rmsY = -1.0;
+
+    // Расчет Итогового Физического Биения по законам НАИ
+    let finalFb = 12.0 + (rmsY * 2.0);
+    
+    // ЖЕСТКИЙ СТОПОР БЕЗОПАСНОСТИ НАРОДНОЙ ВЕРСИИ (10 - 14 Гц)
+    if (finalFb > 14.0) finalFb = 14.0;
+    if (finalFb < 10.0) finalFb = 10.0;
+
+    // ФУНДАМЕНТАЛЬНАЯ МАТРИЦА НАИ: Привязка несущей к биению 1 к 50!
+    NAI_Core.startFb = finalFb;
+    NAI_Core.startFc = NAI_Core.startFb * 50;
+
+    // АВТО-РАСЧЕТ ЦЕЛИ ЛИФТА (Ровно в 2 раза меньше захвата — октавный шаг)
+    NAI_Core.targetFb = NAI_Core.startFb / 2.0;
+    NAI_Core.targetFc = NAI_Core.targetFb * 50;
+
+    // Запечатываем координаты намертво
+    NAI_Core.isAnalysisLocked = true;
+
+    // Выводим финальный весомый результат на монитор
+    document.getElementById("vX").innerText = rmsX.toFixed(2);
+    document.getElementById("vY").innerText = rmsY.toFixed(2);
+    document.getElementById("vFc").innerText = NAI_Core.startFc.toFixed(2) + " Гц";
+    document.getElementById("vFb").innerText = NAI_Core.startFb.toFixed(2) + " Гц";
+    document.getElementById("vPattern").innerText = "ЧАСТОТА ЗАФИКСИРОВАНА (СНАПШОТ)";
+    document.getElementById("liftStatus").innerText = "1. СТАБИЛИЗАЦИЯ ЗАХВАТА (ПЛАТО)";
+
+    // Инициализируем рабочие частоты генератора намертво в пазах
+    NAI_Core.currentFc = NAI_Core.startFc;
+    NAI_Core.currentFb = NAI_Core.startFb;
+}
+// =========================================================================
+// КОНЕЦ БЛОКА 2
+// =========================================================================
+
+// =========================================================================
+// НАЧАЛО БЛОКА 3: АВТОМАТ ТРАКТА РЕМОНТА И ИСПРАВЛЕННЫЙ ЛЕРП v3.3
+// =========================================================================
+function updateHardwareOutputs() {
+    let leftFreq = NAI_Core.currentFc;
+    let rightFreq = NAI_Core.currentFc + NAI_Core.currentFb;
+
+    if(oscL && oscR) {
+        oscL.frequency.setValueAtTime(leftFreq, audioCtx.currentTime);
+        oscR.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+    }
+
+    if(NAI_Core.isGeneratorPlaying) {
+        let labelL = NAI_Core.isSwapped ? "R" : "L";
+        let labelR = NAI_Core.isSwapped ? "L" : "R";
+
+        document.getElementById("realGenL").innerText = leftFreq.toFixed(2) + " Гц (Канал: " + labelL + ")";
+        document.getElementById("realGenR").innerText = rightFreq.toFixed(2) + " Гц (Канал: " + labelR + ")";
+    }
+}
+
+function toggleGenerator() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const btn = document.getElementById("genButton");
+    
+    if(!NAI_Core.isGeneratorPlaying) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        updateTargetFromSelection(); 
+
+        let deltaFb = Math.abs(NAI_Core.startFb - NAI_Core.targetFb);
+        if (deltaFb < 0.1) deltaFb = 0.1; 
+        NAI_Core.liftDuration = Math.round(deltaFb * 300); 
+        if (NAI_Core.liftDuration < 60) NAI_Core.liftDuration = 60;
+
+        NAI_Core.liftTimeElapsed = 0;
+        NAI_Core.totalTimeElapsed = 0;
+        NAI_Core.isLiftActive = false;
+        NAI_Core.isLiftWaitingForSwap = false;
+
+        oscL = audioCtx.createOscillator(); oscR = audioCtx.createOscillator();
+                    gainL = audioCtx.createGain(); gainR = audioCtx.createGain();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(userVolumeRatio, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
+
+            pannerL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            pannerR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+            oscL.type = 'sine'; oscR.type = 'sine';
+
+            gainL.gain.setValueAtTime(0.0, audioCtx.currentTime);
+            gainR.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+            if (pannerL && pannerR) {
+                pannerL.pan.setValueAtTime(-1, audioCtx.currentTime);
+                pannerR.pan.setValueAtTime(1, audioCtx.currentTime);
+                oscL.connect(gainL).connect(pannerL).connect(masterGain);
+                oscR.connect(gainR).connect(pannerR).connect(masterGain);
+            } else {
+                oscL.connect(gainL).connect(masterGain);
+                oscR.connect(gainR).connect(masterGain);
+            }
+
+        oscL.frequency.setValueAtTime(NAI_Core.currentFc, audioCtx.currentTime);
+        oscR.frequency.setValueAtTime(NAI_Core.currentFc + NAI_Core.currentFb, audioCtx.currentTime);
+
+        oscL.start(); oscR.start();
+        
+        gainL.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
+gainR.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
+
+        NAI_Core.isGeneratorPlaying = true;
+        btn.innerText = "ВЫКЛЮЧИТЬ ГЕНЕРАТОР"; btn.style.background = "#703020";
+        
+        document.getElementById("vPattern").innerText = "СИНХРОНИЗАЦИЯ ";
+    if (document.getElementById("vX").innerText === "Ожидание выбора...") {
+        if (NAI_Core.startFb === 14) { document.getElementById("vX").innerHTML = "АНТИСТРЕСС (14 Гц)"; }
+        if (NAI_Core.startFb === 12) { document.getElementById("vX").innerHTML = "СНЯТИЕ ТРЕВОГИ (12 Гц)"; }
+        if (NAI_Core.startFb === 10) { document.getElementById("vX").innerHTML = "РЕЛАКСАЦИЯ (10 Гц)"; }
+        if (NAI_Core.startFb === 7)  { document.getElementById("vX").innerHTML = "ГЛУБОКИЙ ОТДЫХ (7 Гц)"; }
+    }                updateHardwareOutputs();
+
+        liftIntervalId = setInterval(() => {
+            NAI_Core.totalTimeElapsed++;
+            
+            // ЖЕСТКИЙ КУПОЛ: 30 минут обратного отсчета (1800 секунд)
+            let sessionRemaining = TOTAL_SESSION_TIME - NAI_Core.totalTimeElapsed;
+            
+            if (sessionRemaining <= 0) {
+                // АВТОМАТ МЯГКОЙ ОСТАНОВКИ (FADE STOP): гасим звук за 5 секунд
+                clearInterval(liftIntervalId);
+                if(gainL && gainR) {
+                    gainL.gain.setValueAtTime(0.08, audioCtx.currentTime); gainR.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gainL.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 4.9); gainR.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 4.9);
+                }
+                // Полное отключение реле прибора через 5 секунд тишины
+                setTimeout(() => {
+                    if(oscL) { try{oscL.stop();oscL.disconnect();}catch(e){} } if(oscR) { try{oscR.stop();oscR.disconnect();}catch(e){} 
+masterGain = null;}
+                    NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false;
+                    document.getElementById("realGenL").innerText = "---"; document.getElementById("realGenR").innerText = "---";
+                    document.getElementById("liftTimer").innerText = "30:00"; document.getElementById("swapTimer").innerText = "---";
+                    NAI_Core.totalTimeElapsed = 0;
+                    document.getElementById("liftStatus").innerText = "ОЖИДАНИЕ ПУСКА";
+document.getElementById("vPattern").innerText = "Ожидание...";
+        document.getElementById("vPattern").innerText = "Ожидание...";
+        document.getElementById("vX").innerText = "Ожидание выбора...";
+                    btn.innerText = "1. ЗАПУСТИТЬ ГЕНЕРАТОР"; btn.style.background = "#222";
+                    document.getElementById("liftButton").style.background = "#222"; document.getElementById("liftButton").style.color = "#4C8CA3";
+document.getElementById("liftButton").innerText = "2. АКТИВИРОВАТЬ ЛИФТ";
+                }, 5000);
+                document.getElementById("liftTimer").innerText = "00:00";
+                document.getElementById("liftStatus").innerText = "СЕССИЯ ЗАВЕРШЕНА (FADE STOP)";
+                return;
+            }
+
+            // Вывод обратного отсчета на фасад прибора
+            let sesM = Math.floor(sessionRemaining / 60); let sesS = sessionRemaining % 60;
+            document.getElementById("liftTimer").innerText = (sesM < 10 ? "0" : "") + sesM + ":" + (sesS < 10 ? "0" : "") + sesS;
+document.getElementById("vPhase").innerText = "Фаза " + (Math.floor(NAI_Core.totalTimeElapsed / 360) + 1) + " из 5";
+
+            if (NAI_Core.isLiftActive) {
+                NAI_Core.liftTimeElapsed++;
+                let progress = Math.min(NAI_Core.liftTimeElapsed / NAI_Core.liftDuration, 1);
+                NAI_Core.currentFc = NAI_Core.startFc + (NAI_Core.targetFc - NAI_Core.startFc) * progress;
+                NAI_Core.currentFb = NAI_Core.startFb + (NAI_Core.targetFb - NAI_Core.startFb) * progress;
+                
+                if (progress >= 1) {
+                    document.getElementById("liftStatus").innerText = "3. ПРИЛУHЕНИЕ ЗАВЕРШЕНО (ТОЧКА ЦЕЛИ)";
+                }
+            }
+            
+            updateHardwareOutputs();
+
+            let timeToSwap = SWAP_INTERVAL - (NAI_Core.totalTimeElapsed % SWAP_INTERVAL);
+            document.getElementById("swapTimer").innerText = timeToSwap + " сек";
+
+            if (timeToSwap === 2) {
+                gainL.gain.setValueAtTime(0.08, audioCtx.currentTime); gainR.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gainL.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 1.9); gainR.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 1.9);
+            }
+
+            // ТОЧКА ИНВЕРСИИ И БЕЗУПРЕЧНОЙ СТЫКОВКИ ЛИФТА
+            if(NAI_Core.totalTimeElapsed % SWAP_INTERVAL === 0 && pannerL && pannerR) {
+                NAI_Core.isSwapped = !NAI_Core.isSwapped;
+                pannerL.pan.setValueAtTime(NAI_Core.isSwapped ? 1 : -1, audioCtx.currentTime); pannerR.pan.setValueAtTime(NAI_Core.isSwapped ? -1 : 1, audioCtx.currentTime);
+                
+                // ЕСЛИ ЛИФТ ЖДАЛ ИНВЕРСИЮ — ВКЛЮЧАЕМ СЦЕПЛЕНИЕ В ТОЧКЕ НУЛЯ!
+                if (NAI_Core.isLiftWaitingForSwap) {
+                    NAI_Core.isLiftWaitingForSwap = false;
+                    NAI_Core.isLiftActive = true;
+                    document.getElementById("liftStatus").innerText = "2.ЛИФТ ВКЛЮЧЕН(ПОГРУЖЕНИЕ)";
+                 document.getElementById("vPattern").innerText = "ПОГРУЖЕНИЕ";
+                }
+
+                gainL.gain.setValueAtTime(0.0, audioCtx.currentTime); gainR.gain.setValueAtTime(0.0, audioCtx.currentTime);
+                gainL.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
+gainR.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
+            }
+        }, 1000);
+        } else {
+        clearInterval(liftIntervalId);
+        btn.disabled = true;
+        document.getElementById("liftStatus").innerText = "ПЛАВНАЯ ОСТАНОВКА (FADE OUT)...";
+
+        if (gainL && gainR && audioCtx) {
+            gainL.gain.cancelScheduledValues(audioCtx.currentTime);
+            gainR.gain.cancelScheduledValues(audioCtx.currentTime);
+            gainL.gain.setValueAtTime(gainL.gain.value, audioCtx.currentTime);
+            gainR.gain.setValueAtTime(gainR.gain.value, audioCtx.currentTime);
+            gainL.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 2.0);
+            gainR.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 2.0);
+        }
+
+        setTimeout(() => {
+            if(oscL) { try{oscL.stop();oscL.disconnect();}catch(e){} } 
+            if(oscR) { try{oscR.stop();oscR.disconnect();}catch(e){} }
+masterGain = null;
+            NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false;
+            document.getElementById("realGenL").innerText = "---"; document.getElementById("realGenR").innerText = "---";
+            document.getElementById("liftTimer").innerText = "30:00"; 
+            document.getElementById("swapTimer").innerText = "---";
+            NAI_Core.totalTimeElapsed = 0;
+            document.getElementById("liftStatus").innerText = "ОЖИДАНИЕ ПУСКА";
+            document.getElementById("vPattern").innerText = "Ожидание...";
+            document.getElementById("vX").innerText = "Ожидание выбора...";
+            btn.innerText = "1. ЗАПУСТИТЬ ГЕНЕРАТОР "; btn.style.background = "#222";
+            btn.disabled = false;
+            document.getElementById("liftButton").style.background = "#222"; document.getElementById("liftButton").style.color = "#4C8CA3";
+document.getElementById("liftButton").innerText = "2. АКТИВИРОВАТЬ ЛИФТ";
+        }, 2050);
+    }
+}
+function toggleLift() {
+    if (!NAI_Core.isGeneratorPlaying) { alert("Сначала запустите генератор (Кнопка 1)!"); return; }
+    if (NAI_Core.selectedBaseFb === 7) { alert("Для операции ГЛУБОКИЙ ОТДЫХ автоматический лифт заблокирован!"); return; }
+    
+    // Предохранитель от позднего пуска: если осталось меньше 6 минут до конца купола — блокируем!
+    let sessionRemaining = TOTAL_SESSION_TIME - NAI_Core.totalTimeElapsed;
+    if (sessionRemaining < SWAP_INTERVAL && !NAI_Core.isLiftActive && !NAI_Core.isLiftWaitingForSwap) {
+        alert("Недостаточно времени до конца сессии для безопасного спуска!");
+        return;
+    }
+
+    const liftBtn = document.getElementById("liftButton");
+    
+            if (!NAI_Core.isLiftActive && !NAI_Core.isLiftWaitingForSwap) {
+            NAI_Core.isLiftWaitingForSwap = true;
+            document.getElementById("liftStatus").innerText = "ЛИФТ ВЗВЕДЕН (ОЖИДАНИЕ СЛЕДУЮЩЕЙ ИНВЕРСИИ...)";
+            liftBtn.innerText = "ВЫКЛЮЧИТЬ ЛИФТ";
+            liftBtn.style.background = "#0ea5e9";
+            liftBtn.style.color = "#FFF";
+        } else {
+            NAI_Core.isLiftActive = false;
+            NAI_Core.isLiftWaitingForSwap = false;
+            document.getElementById("liftStatus").innerText = "1. ЛИФТ НА ПАУЗЕ";
+            document.getElementById("vPattern").innerText = "СИНХРОНИЗАЦИЯ";
+            liftBtn.innerText = "2. АКТИВИРОВАТЬ ЛИФТ";
+            liftBtn.style.background = "#222";
+            liftBtn.style.color = "#4C8CA3";
+        }
+    }
+// Инициализация прибора на Идеальной Средней при первом запуске страницы
+function loadSavedState() {
+    try {
+            let savedVol = localStorage.getItem('nai_wave_vol');
+            if (savedVol !== null) {
+                document.getElementById('volSlider').value = savedVol;
+                userVolumeRatio = parseFloat(savedVol) / 100;
+                document.getElementById('volDisplay').innerText = savedVol + '%';
+            }
+        let savedStep = localStorage.getItem('nai_wave_step');
+        if (savedStep === "2.0" || savedStep === "3.0" || savedStep === "4.0") {
+            document.getElementById("stepSelect").value = savedStep;
+        } else {
+            document.getElementById("stepSelect").value = "3.0";
+        }
+        let savedFb = parseFloat(localStorage.getItem('nai_wave_fb'));
+        if (savedFb === 14) setPreset(14, 0.6, 0.5);
+        else if (savedFb === 12) setPreset(12, -0.2, -0.1);
+        else if (savedFb === 7) setPreset(7, 0.2, 0.1);
+        else setPreset(10, 0.0, 0.0);
+    } catch (e) {
+        document.getElementById("stepSelect").value = "3.0";
+        setPreset(10, 0.0, 0.0);
+    }
+}
+loadSavedState();
+</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
