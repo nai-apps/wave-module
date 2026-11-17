@@ -1,21 +1,26 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>НАИ: Волновой модуль стабилизации v3.9</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMwRTBFMEUiIHN0cm9rZT0iI0EzNzA0QyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTIwIDE2djMyTTQ0IDE2djMyTTIwIDMyaDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNBMzcwNEMiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+">
-    <meta name="theme-color" content="#0E0E0E">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="./icon-ru.png">
-    <style>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMwRTBFMEUiIHN0cm9rZT0iI0EzNzA0QyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTIwIDE2djMyTTQ0IDE2djMyTTIwIDMyaDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNBMzcwNEMiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+"> <style>
         body { background: #0E0E0E; color: #D5D5D5; font-family: 'Courier New', Courier, monospace; padding: 20px; max-width: 900px; margin: 0 auto; user-select: none; }
         h2, h3 { color: #A3704C; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; }
         .control-panel { background-color: #141414; border: 2px solid #333; border-radius: 8px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.7); margin-bottom: 20px; }
         .stats-box { background-color: #1A1A1A; border-left: 4px solid #A3704C; padding: 12px; margin-bottom: 15px; border-radius: 4px; }
         .stat-line, .line { margin: 8px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .value, .val { color: #FFF; font-weight: bold; }
+                .value, .val { color: #FFF; font-weight: bold; white-space: nowrap; margin-left: 10px; text-align: right; }
         .btn-gen { background-color: #222; color: #7CA34C; border: 1px solid #7CA34C; padding: 12px; cursor: pointer; font-family: inherit; font-weight: bold; border-radius: 4px; width: 100%; transition: all 0.2s; text-align: center; margin-bottom: 5px; }
+        .btn-gen:hover { background-color: #222; filter: brightness(1.3); }
+        #vX { white-space: nowrap; }
+        @media (max-width: 480px) { 
+            .btn-gen { padding: 8px 4px; font-size: 11px; line-height: 1.2; word-spacing: -1px; } 
+            #vX { font-size: 12px !important; }
+            .sep-bar { display: none; }
+            .lift-target-val { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.35; }
+            .lift-target-val .sub-freq { display: block; white-space: nowrap; }
+        }
         .btn-gen:hover { background-color: #222; filter: brightness(1.3); }
         #vX { white-space: nowrap; }
         @media (max-width: 480px) { 
@@ -76,9 +81,9 @@
     <div class="control-panel">
         <h3>3. Автоматический лифт понижения частоты</h3>
         <div class="stats-box" style="border-left-color: #7CA34C;">
-            <div class="line" style="color:#A3704C; font-weight:bold;">
+                        <div class="line" style="color:#A3704C; font-weight:bold;">
                 <span>ЦЕЛЕВАЯ ЧАСТОТА ЛИФТА:</span>
-                <span class="value">Fc: <span id="targetDisplayFc">---</span> Гц | Fb: <span id="targetDisplayFb">---</span> Гц</span>
+                <span class="value lift-target-val"><span class="sub-freq">Fc: <span id="targetDisplayFc">---</span> Гц<span class="sep-bar"> | </span></span><span class="sub-freq">Fb: <span id="targetDisplayFb">---</span> Гц</span></span>
             </div>
                         <div class="line" style="color:#A3704C; font-weight:bold; border-top: 1px solid #222; padding-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between;">
                 <span style="flex-shrink: 0;">СТАТУС АВТОМАТА:</span> <span id="liftStatus" class="value" style="text-align: right;">ОЖИДАНИЕ ПУСКА</span>
@@ -271,8 +276,8 @@ function updateHardwareOutputs() {
         let labelL = NAI_Core.isSwapped ? "R" : "L";
         let labelR = NAI_Core.isSwapped ? "L" : "R";
 
-        document.getElementById("realGenL").innerText = leftFreq.toFixed(2) + " Гц (Канал: " + labelL + ")";
-        document.getElementById("realGenR").innerText = rightFreq.toFixed(2) + " Гц (Канал: " + labelR + ")";
+                document.getElementById("realGenL").innerText = leftFreq.toFixed(2) + " Гц (КАН: " + labelL + ")";
+        document.getElementById("realGenR").innerText = rightFreq.toFixed(2) + " Гц (КАН: " + labelR + ")";
     }
 }
 
@@ -507,12 +512,5 @@ function loadSavedState() {
 }
 loadSavedState();
 </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
-            });
-        }
-    </script>
 </body>
 </html>
