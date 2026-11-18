@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nai-wave-en-v3-9-8';
+const CACHE_NAME = 'nai-wave-en-v3-9-9';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', event => {
