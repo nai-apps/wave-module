@@ -175,7 +175,7 @@ function setPreset(fb, nx, ny) {
 }
 // РАСЧЕТ РУЧНОЙ ВАРИАТИВНОСТИ ЦЕЛИ
 function updateTargetFromSelection() {
-    if (NAI_Core.isGeneratorPlaying) return;
+    if (NAI_Core.hasLiftStarted) return;
 
     let step = parseFloat(document.getElementById("stepSelect").value);
     
@@ -191,14 +191,23 @@ function updateTargetFromSelection() {
     
     NAI_Core.targetFc = NAI_Core.targetFb * 50; // Синхронизируем несущую цели!
 
+    let deltaFb = Math.abs(NAI_Core.startFb - NAI_Core.targetFb);
+    if (deltaFb < 0.1) deltaFb = 0.1;
+    NAI_Core.liftDuration = Math.round(deltaFb * 300);
+    if (NAI_Core.liftDuration < 60) NAI_Core.liftDuration = 60;
+
     document.getElementById("targetDisplayFc").innerText = NAI_Core.targetFc.toFixed(2);
     document.getElementById("targetDisplayFb").innerText = NAI_Core.targetFb.toFixed(2);
 
-    NAI_Core.currentFc = NAI_Core.startFc;
-    NAI_Core.currentFb = NAI_Core.startFb;
+    if (!NAI_Core.isGeneratorPlaying) {
+        NAI_Core.currentFc = NAI_Core.startFc;
+        NAI_Core.currentFb = NAI_Core.startFb;
+    }
     localStorage.setItem('nai_wave_fb', NAI_Core.selectedBaseFb);
     localStorage.setItem('nai_wave_step', step);
 }
+
+    
 // =========================================================================
 // КОНЕЦ БЛОКА 2
 // =========================================================================
@@ -363,7 +372,9 @@ gainR.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
                 setTimeout(() => {
                     if(oscL) { try{oscL.stop();oscL.disconnect();}catch(e){} } if(oscR) { try{oscR.stop();oscR.disconnect();}catch(e){} 
 masterGain = null;}
-                    NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false;
+                    NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false; NAI_Core.hasLiftStarted = false;
+if (NAI_Core.selectedBaseFb !== 7) document.getElementById("stepSelect").disabled = false;
+
                     document.getElementById("realGenL").innerText = "---"; document.getElementById("realGenR").innerText = "---";
                     document.getElementById("liftTimer").innerText = "30:00"; document.getElementById("swapTimer").innerText = "---";
                     NAI_Core.totalTimeElapsed = 0;
@@ -411,13 +422,16 @@ document.getElementById("vPhase").innerText = "Фаза " + (Math.floor(NAI_Core
                 NAI_Core.isSwapped = !NAI_Core.isSwapped;
                 pannerL.pan.setValueAtTime(NAI_Core.isSwapped ? 1 : -1, audioCtx.currentTime); pannerR.pan.setValueAtTime(NAI_Core.isSwapped ? -1 : 1, audioCtx.currentTime);
                 
-                // ЕСЛИ ЛИФТ ЖДАЛ ИНВЕРСИЮ — ВКЛЮЧАЕМ СЦЕПЛЕНИЕ В ТОЧКЕ НУЛЯ!
+                                // ЕСЛИ ЛИФТ ЖДАЛ ИНВЕРСИЮ — ВКЛЮЧАЕМ СЦЕПЛЕНИЕ В ТОЧКЕ НУЛЯ!
                 if (NAI_Core.isLiftWaitingForSwap) {
                     NAI_Core.isLiftWaitingForSwap = false;
                     NAI_Core.isLiftActive = true;
+                    NAI_Core.hasLiftStarted = true;
+                    document.getElementById("stepSelect").disabled = true;
                     document.getElementById("liftStatus").innerText = "ЛИФТ ВКЛЮЧЕН(ПОГРУЖЕНИЕ)";
                  document.getElementById("vPattern").innerText = "ПОГРУЖЕНИЕ";
                 }
+
 
                 gainL.gain.setValueAtTime(0.0, audioCtx.currentTime); gainR.gain.setValueAtTime(0.0, audioCtx.currentTime);
                 gainL.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
@@ -442,7 +456,9 @@ gainR.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
             if(oscL) { try{oscL.stop();oscL.disconnect();}catch(e){} } 
             if(oscR) { try{oscR.stop();oscR.disconnect();}catch(e){} }
 masterGain = null;
-            NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false;
+            NAI_Core.isGeneratorPlaying = false; NAI_Core.isLiftActive = false; NAI_Core.isLiftWaitingForSwap = false; NAI_Core.hasLiftStarted = false;
+if (NAI_Core.selectedBaseFb !== 7) document.getElementById("stepSelect").disabled = false;
+
             document.getElementById("realGenL").innerText = "---"; document.getElementById("realGenR").innerText = "---";
             document.getElementById("liftTimer").innerText = "30:00"; 
             document.getElementById("swapTimer").innerText = "---";
