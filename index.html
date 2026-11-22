@@ -341,8 +341,8 @@ function toggleGenerator() {
 
         oscL.start(); oscR.start();
         
-        gainL.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
-gainR.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 2);
+        gainL.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 2);
+gainR.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 2);
 
         NAI_Core.isGeneratorPlaying = true;
         btn.innerText = "ВЫКЛЮЧИТЬ ГЕНЕРАТОР"; btn.style.background = "#703020";
